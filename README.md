@@ -16,6 +16,11 @@ or `mason` dependency.
 > **[brighterscript](https://github.com/rokucommunity/brighterscript)** — this plugin is
 > just the Neovim glue (filetype, syntax, and server registration).
 
+![brighterscript.nvim: syntax highlighting and LSP on a BrightSign autorun script](assets/screenshot.png)
+
+> Highlighting and live LSP diagnostics on a BrightSign `autozip.brs`. The two flagged
+> lines are the expected Roku-vs-BrightSign false positives — see [BrightSign caveat](#brightsign-caveat).
+
 ## Install the `bsc` binary
 
 Either source works; the plugin resolves `bsc` from `$PATH` first, then Mason's bin dir.
