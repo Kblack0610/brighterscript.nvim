@@ -59,6 +59,31 @@ Completion capabilities and keybindings normally come from your global
 `vim.lsp.config("*", { capabilities = ... })` and an `LspAttach` autocmd, so you don't
 need to repeat them here.
 
+## Highlighting and the LSP are independent layers
+
+Worth knowing when toggling or debugging — the colors and the language-server features are
+two **separate** systems:
+
+- **Colors** come from the bundled vim syntax file, **not** the LSP. They work even with the
+  LSP stopped, and with no `bsc` installed at all.
+- **The LSP** (`bsc`) layers diagnostics, completion, hover, goto-definition, rename, and
+  symbols on top. In a *static* view (e.g. a screenshot) the only LSP-visible thing is the
+  diagnostics; everything else is interactive.
+
+Toggle each independently for the current buffer:
+
+```vim
+:setlocal syntax=OFF                 " colors off       → back on: :setlocal syntax=brightscript
+:lua vim.diagnostic.enable(false)    " diagnostics off  → back on: vim.diagnostic.enable(true)
+```
+
+To fully detach the LSP for the session (stops it re-attaching on the next keystroke):
+
+```vim
+:lua vim.lsp.enable("brighterscript", false)
+:lua for _, c in ipairs(vim.lsp.get_clients({ name = "brighterscript" })) do vim.lsp.stop_client(c.id) end
+```
+
 ## Formatting
 
 The `brighterscript` language server does **not** provide LSP formatting. RokuCommunity
@@ -79,8 +104,8 @@ require("conform").setup({
   formatters = {
     bsfmt = {
       command = "bsfmt",
-      args = { "--stdin" },   -- format from stdin, write to stdout
-      stdin = true,
+      args = { "--write", "$FILENAME" },  -- bsfmt has no stdin; format the tempfile in place
+      stdin = false,                      -- conform reads the file back after --write
     },
   },
 })
