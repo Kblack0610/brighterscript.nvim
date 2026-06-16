@@ -61,28 +61,40 @@ need to repeat them here.
 
 ## Highlighting and the LSP are independent layers
 
-Worth knowing when toggling or debugging — the colors and the language-server features are
-two **separate** systems:
+The colors and the language-server features are **separate** systems — useful to know when
+toggling or debugging:
 
-- **Colors** come from the bundled vim syntax file, **not** the LSP. They work even with the
-  LSP stopped, and with no `bsc` installed at all.
-- **The LSP** (`bsc`) layers diagnostics, completion, hover, goto-definition, rename, and
-  symbols on top. In a *static* view (e.g. a screenshot) the only LSP-visible thing is the
-  diagnostics; everything else is interactive.
+- **Base colors** come from the bundled vim syntax file, **not** the LSP. They show with the
+  LSP stopped, and even with no `bsc` installed at all.
+- **The LSP** (`bsc`) adds *semantic-token* highlighting on top (more precise, parse-aware
+  coloring) plus diagnostics, completion, hover, goto-definition, rename, and symbols.
 
-Toggle each independently for the current buffer:
+So **turning off the LSP does not remove the colors** — you still get the syntax file's
+highlighting. The toggles are independent:
 
 ```vim
-:setlocal syntax=OFF                 " colors off       → back on: :setlocal syntax=brightscript
-:lua vim.diagnostic.enable(false)    " diagnostics off  → back on: vim.diagnostic.enable(true)
+" diagnostics only (colors stay):
+:lua vim.diagnostic.enable(false)        " back on: vim.diagnostic.enable(true)
+
+" syntax-file colors (this buffer):
+:setlocal syntax=OFF                     " back on: :setlocal syntax=brightscript
 ```
 
-To fully detach the LSP for the session (stops it re-attaching on the next keystroke):
+For a *fully monochrome* buffer you must drop the syntax **and** detach the LSP (so its
+semantic-token colors go too):
 
 ```vim
+:setlocal syntax=OFF
 :lua vim.lsp.enable("brighterscript", false)
 :lua for _, c in ipairs(vim.lsp.get_clients({ name = "brighterscript" })) do vim.lsp.stop_client(c.id) end
 ```
+
+### Just want highlighting? (no LSP)
+
+The syntax file is fully self-contained. If you only want colors and don't need the language
+server, skip `bsc` entirely: install the plugin and never install `brighterscript`, **or**
+just drop `syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your own config's
+`syntax/` and `ftdetect/` directories. Highlighting then works with zero dependencies.
 
 ## Formatting
 
