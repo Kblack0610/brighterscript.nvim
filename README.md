@@ -21,6 +21,15 @@ or `mason` dependency.
 > Highlighting and live LSP diagnostics on a BrightSign `autozip.brs`. The two flagged
 > lines are the expected Roku-vs-BrightSign false positives — see [BrightSign caveat](#brightsign-caveat).
 
+### Before / after
+
+The same BrightSign script (`autorun.brs`) with the plugin off vs on — the colors come
+from the bundled syntax file (no Tree-sitter required):
+
+| Plain text (no plugin) | With `brighterscript.nvim` |
+|:---:|:---:|
+| ![before: no highlighting](assets/no-highlight.png) | ![after: syntax highlighting](assets/highlight.png) |
+
 ## Install the `bsc` binary
 
 Either source works; the plugin resolves `bsc` from `$PATH` first, then Mason's bin dir.
