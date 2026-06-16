@@ -1,7 +1,7 @@
 # brighterscript.nvim
 
-Barebones [BrightScript](https://developer.roku.com/docs/references/brightscript/language/brightscript-language-reference.md)
-/ BrighterScript support for Neovim — works for both **Roku** and **BrightSign** `.brs` files.
+[BrightScript](https://developer.roku.com/docs/references/brightscript/language/brightscript-language-reference.md)
+/ BrighterScript support for Neovim — syntax highlighting and LSP for Roku and BrightSign `.brs` files.
 
 - **Syntax highlighting** — a self-contained vim syntax file (`*.brs`, `*.bs`). No
   Tree-sitter parser or external grammar required.
@@ -12,9 +12,9 @@ Barebones [BrightScript](https://developer.roku.com/docs/references/brightscript
 Requires **Neovim 0.11+** (native `vim.lsp.config` / `vim.lsp.enable`). No `nvim-lspconfig`
 or `mason` dependency.
 
-> The LSP is powered entirely by RokuCommunity's
-> **[brighterscript](https://github.com/rokucommunity/brighterscript)** — this plugin is
-> just the Neovim glue (filetype, syntax, and server registration).
+> The LSP is provided by RokuCommunity's
+> [brighterscript](https://github.com/rokucommunity/brighterscript); this plugin is the
+> Neovim glue (filetype, syntax, and server registration).
 
 ![brighterscript.nvim: syntax highlighting and LSP on a BrightSign autorun script](assets/screenshot.png)
 
@@ -23,8 +23,7 @@ or `mason` dependency.
 
 ### Before / after
 
-The same BrightSign script (`autorun.brs`) with the plugin off vs on — the colors come
-from the bundled syntax file (no Tree-sitter required):
+The same BrightSign script (`autorun.brs`) with the plugin disabled and enabled:
 
 | Plain text (no plugin) | With `brighterscript.nvim` |
 |:---:|:---:|
@@ -61,7 +60,7 @@ npm install -g brighterscript      # global
 | `cmd` | auto (`bsc --lsp --stdio`) | override the server command |
 | `filetypes` | `{ "brightscript", "brs", "bs" }` | filetypes the LSP attaches to |
 | `root_markers` | `{ "bsconfig.json", "manifest", ".git" }` | project root detection |
-| `auto_enable` | `true` | register **and** enable the server |
+| `auto_enable` | `true` | register and enable the server |
 | `on_attach` / `capabilities` / `settings` | `nil` | standard LSP overrides |
 
 Completion capabilities and keybindings normally come from your global
@@ -70,16 +69,15 @@ need to repeat them here.
 
 ## Highlighting and the LSP are independent layers
 
-The colors and the language-server features are **separate** systems — useful to know when
-toggling or debugging:
+Highlighting and the language server are separate systems:
 
-- **Base colors** come from the bundled vim syntax file, **not** the LSP. They show with the
-  LSP stopped, and even with no `bsc` installed at all.
-- **The LSP** (`bsc`) adds *semantic-token* highlighting on top (more precise, parse-aware
-  coloring) plus diagnostics, completion, hover, goto-definition, rename, and symbols.
+- **Base colors** come from the bundled vim syntax file, not the LSP. They render with the
+  LSP stopped or with `bsc` not installed.
+- **The LSP** (`bsc`) adds semantic-token highlighting (parse-aware coloring) plus
+  diagnostics, completion, hover, goto-definition, rename, and symbols.
 
-So **turning off the LSP does not remove the colors** — you still get the syntax file's
-highlighting. The toggles are independent:
+Turning off the LSP does not remove the colors; the syntax file still applies. The toggles
+are independent:
 
 ```vim
 " diagnostics only (colors stay):
@@ -89,8 +87,8 @@ highlighting. The toggles are independent:
 :setlocal syntax=OFF                     " back on: :setlocal syntax=brightscript
 ```
 
-For a *fully monochrome* buffer you must drop the syntax **and** detach the LSP (so its
-semantic-token colors go too):
+For a monochrome buffer, disable the syntax and detach the LSP (which also removes its
+semantic-token colors):
 
 ```vim
 :setlocal syntax=OFF
@@ -98,20 +96,19 @@ semantic-token colors go too):
 :lua for _, c in ipairs(vim.lsp.get_clients({ name = "brighterscript" })) do vim.lsp.stop_client(c.id) end
 ```
 
-### Just want highlighting? (no LSP)
+### Highlighting without the LSP
 
-The syntax file is fully self-contained. If you only want colors and don't need the language
-server, skip `bsc` entirely: install the plugin and never install `brighterscript`, **or**
-just drop `syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your own config's
-`syntax/` and `ftdetect/` directories. Highlighting then works with zero dependencies.
+The syntax file is self-contained. For highlighting alone, install the plugin without `bsc`,
+or copy `syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your config's
+`syntax/` and `ftdetect/` directories.
 
 ## Formatting
 
 The `brighterscript` language server does **not** provide LSP formatting. RokuCommunity
 ships formatting as a separate tool —
 [`brighterscript-formatter`](https://github.com/rokucommunity/brighterscript-formatter),
-the `bsfmt` CLI (this is what the VS Code extension uses too). Wire it into your existing
-formatter runner, e.g. [conform.nvim](https://github.com/stevearc/conform.nvim):
+the `bsfmt` CLI. Wire it into your formatter runner, e.g.
+[conform.nvim](https://github.com/stevearc/conform.nvim):
 
 ```sh
 npm install -g brighterscript-formatter   # or :MasonInstall brighterscript-formatter
@@ -139,7 +136,7 @@ and navigation/hover/rename/completion on your *own* symbols are accurate. *Sema
 diagnostics, however, will flag BrightSign-specific objects (`roVideoPlayer`,
 `roNetworkConfiguration`, `roBrightPackage`, …) as unknown functions/components.
 
-To quiet that noise in a BrightSign project, add a `bsconfig.json` at the project root:
+To suppress these in a BrightSign project, add a `bsconfig.json` at the project root:
 
 ```json
 { "diagnostic": { "suppress": ["1001"] } }
@@ -150,7 +147,7 @@ To quiet that noise in a BrightSign project, add a `bsconfig.json` at the projec
 ## Credits
 
 - [rokucommunity/brighterscript](https://github.com/rokucommunity/brighterscript) — the
-  language server (`bsc`) that powers all LSP features here.
+  language server (`bsc`) behind the LSP features.
 - [rokucommunity/brighterscript-formatter](https://github.com/rokucommunity/brighterscript-formatter)
   — the `bsfmt` formatter.
 - [RokuCommunity.brightscript](https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript)
