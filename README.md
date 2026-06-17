@@ -7,7 +7,9 @@
   Tree-sitter parser or external grammar required.
 - **LSP** — wraps RokuCommunity's [`brighterscript`](https://github.com/rokucommunity/brighterscript)
   language server (`bsc --lsp --stdio`): diagnostics, completion, hover, goto-definition,
-  rename, and document symbols. (Formatting isn't wired up yet — see [Formatting](#formatting).)
+  rename, and document symbols.
+- **Formatting** — via RokuCommunity's [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter)
+  CLI, wired through a formatter runner — see [Formatting](#formatting).
 
 Requires **Neovim 0.11+** (native `vim.lsp.config` / `vim.lsp.enable`). No `nvim-lspconfig`
 or `mason` dependency.
@@ -134,11 +136,34 @@ colors still apply). Or, to vendor the highlighting with no plugin at all, copy
 
 ## Formatting
 
-**Not working yet — coming soon.** The `brighterscript` language server provides no LSP
-formatting, so this plugin doesn't format. RokuCommunity ships formatting as a separate
-tool — the [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter) CLI — which
-you can wire into a formatter runner (e.g. [conform.nvim](https://github.com/stevearc/conform.nvim))
-in the meantime. First-class integration is planned.
+The `brighterscript` language server provides no LSP formatting, so formatting comes from
+RokuCommunity's separate [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter)
+CLI. Install it, then point a formatter runner at it:
+
+```sh
+npm install -g brighterscript-formatter   # or :MasonInstall brighterscript-formatter
+```
+
+With [conform.nvim](https://github.com/stevearc/conform.nvim):
+
+```lua
+require("conform").setup({
+  formatters_by_ft = {
+    brightscript = { "bsfmt" },
+  },
+  formatters = {
+    bsfmt = {
+      command = "bsfmt",
+      args = { "--write", "$FILENAME" },  -- bsfmt has no stdin; format the tempfile in place
+      stdin = false,                      -- conform reads the file back after --write
+    },
+  },
+})
+```
+
+`bsfmt` honors a project `bsfmt.json` for style options. If `bsfmt` isn't on your `$PATH`,
+install it via Mason (above) — `mason.nvim` prepends its `bin/` to Neovim's `PATH`, so
+conform finds it.
 
 ## BrightSign caveat
 
