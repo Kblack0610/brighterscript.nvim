@@ -140,11 +140,11 @@ colors still apply). Or, to vendor the highlighting with no plugin at all, copy
 
 ## Formatting
 
-Formatting is **not** an LSP feature here — the `brighterscript` language server provides no
-formatting capability, so `:checkhealth vim.lsp` will never list it and `vim.lsp.buf.format()`
-errors with *"no matching language servers"*. Formatting instead comes from RokuCommunity's
-separate [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter) CLI, driven by a
-formatter runner.
+Formatting is supported through RokuCommunity's [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter)
+CLI — the standard BrightScript/BrighterScript formatter. The `bsc` language server doesn't
+expose formatting itself, so `bsfmt` does it, driven by a formatter runner. (Practically: format
+with `bsfmt`/conform, not `vim.lsp.buf.format`, and check status with `:ConformInfo` rather than
+`:checkhealth vim.lsp`.)
 
 **1. Install `bsfmt`:**
 
@@ -187,9 +187,7 @@ whole-file reindent:
 { "indentStyle": "spaces", "indentSpaceCount": 2, "keywordCase": "original" }
 ```
 
-> Check formatting via `:ConformInfo` (it should show `bsfmt (available)`), **not**
-> `:checkhealth vim.lsp`. Bind a key to `require("conform").format()` rather than
-> `vim.lsp.buf.format` so it doesn't error on BrightScript.
+> `:ConformInfo` should show `bsfmt (available)` once installed.
 
 ## BrightSign caveat
 
