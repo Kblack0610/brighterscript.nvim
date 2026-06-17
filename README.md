@@ -152,6 +152,8 @@ To suppress these in a BrightSign project, add a `bsconfig.json` at the project 
   — the `bsfmt` formatter.
 - [RokuCommunity.brightscript](https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript)
   — the VS Code extension this plugin mirrors for Neovim.
+- Developed for the BrightSign fleet manager at
+  [Gigantic Playground](https://giganticplayground.com).
 
 ## License
 
