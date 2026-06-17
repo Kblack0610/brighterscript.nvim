@@ -138,6 +138,17 @@ colors still apply). Or, to vendor the highlighting with no plugin at all, copy
 `syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your config's `syntax/` and
 `ftdetect/` directories.
 
+### Classic Vim (without Neovim)
+
+`syntax/brightscript.vim` and `ftdetect/brightscript.vim` are plain Vimscript, so **syntax
+highlighting works in classic Vim** too — install the repo with any Vim plugin manager, or copy
+those two files into `~/.vim/syntax/` and `~/.vim/ftdetect/`.
+
+The **LSP and formatting** features are Neovim-only: the LSP layer uses Neovim's native
+`vim.lsp` API (0.11+), and formatting is wired through a Neovim formatter runner. In classic
+Vim you'd point a separate LSP client (e.g. [vim-lsp](https://github.com/prabirshrestha/vim-lsp)
+or [coc.nvim](https://github.com/neoclide/coc.nvim)) at `bsc --lsp --stdio` yourself.
+
 ## Formatting
 
 Formatting is supported through RokuCommunity's [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter)
