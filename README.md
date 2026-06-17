@@ -7,7 +7,7 @@
   Tree-sitter parser or external grammar required.
 - **LSP** — wraps RokuCommunity's [`brighterscript`](https://github.com/rokucommunity/brighterscript)
   language server (`bsc --lsp --stdio`): diagnostics, completion, hover, goto-definition,
-  rename, document symbols, and formatting.
+  rename, and document symbols. (Formatting isn't wired up yet — see [Formatting](#formatting).)
 
 Requires **Neovim 0.11+** (native `vim.lsp.config` / `vim.lsp.enable`). No `nvim-lspconfig`
 or `mason` dependency.
@@ -16,18 +16,32 @@ or `mason` dependency.
 > [brighterscript](https://github.com/rokucommunity/brighterscript); this plugin is the
 > Neovim glue (filetype, syntax, and server registration).
 
-![brighterscript.nvim: syntax highlighting and LSP on a BrightSign autorun script](assets/screenshot.png)
-
-> Highlighting and live LSP diagnostics on a BrightSign `autozip.brs`. The two flagged
-> lines are the expected Roku-vs-BrightSign false positives — see [BrightSign caveat](#brightsign-caveat).
-
 ### Before / after
 
-The same BrightSign script (`autorun.brs`) with the plugin disabled and enabled:
+The same BrightSign script with the plugin disabled and enabled:
 
 | Plain text (no plugin) | With `brighterscript.nvim` |
 |:---:|:---:|
-| ![before: no highlighting](assets/no-highlight.png) | _the screenshot at the top of this README_ |
+| ![before: no highlighting](assets/no-highlight.png) | ![after: syntax highlighting and LSP](assets/screenshot.png) |
+
+> Highlighting and live LSP diagnostics on a BrightSign `.brs` script. The two flagged
+> lines are the expected Roku-vs-BrightSign false positives — see [BrightSign caveat](#brightsign-caveat).
+
+### Go to definition
+
+`gd` jumps to a symbol's definition, across files — here from a call to its function:
+
+| Call site (`gd` here) | Jumps to definition |
+|:---:|:---:|
+| <img src="assets/goto-call.png" width="420"> | <img src="assets/goto-def.png" width="420"> |
+
+Your own symbols resolve, including functions attached to objects (e.g. `diagnostics.printDebug`
+finds the global `PrintDebug` sub). Engine/SDK built-ins (`CreateObject`, `print`, `wait`,
+BrightSign `ro*` objects) don't — they have no source to open, and nothing needs adding.
+
+Cross-file resolution needs a project root the server can scope. A `.git`, `manifest`, or
+`bsconfig.json` is enough; if your scripts live outside `source/`, point a `bsconfig.json` at
+them (see [BrightSign caveat](#brightsign-caveat)).
 
 ## Install the `bsc` binary
 
@@ -96,38 +110,35 @@ semantic-token colors):
 :lua for _, c in ipairs(vim.lsp.get_clients({ name = "brighterscript" })) do vim.lsp.stop_client(c.id) end
 ```
 
-### Highlighting without the LSP
+### Highlighting only (no LSP)
 
-The syntax file is self-contained. For highlighting alone, install the plugin without `bsc`,
-or copy `syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your config's
-`syntax/` and `ftdetect/` directories.
+The vim syntax file is self-contained, so the plugin gives you **syntax highlighting on its
+own** — no `bsc`, no Node, nothing else to install. Just install the plugin and skip the
+`bsc` step above:
+
+```lua
+{
+  "Kblack0610/brighterscript.nvim",
+  ft = "brightscript",
+  init = function()
+    vim.filetype.add({ extension = { bs = "brightscript" } })
+  end,
+  opts = {},
+}
+```
+
+Without `bsc` on `$PATH` the LSP simply stays inactive (it logs a clear error and the syntax
+colors still apply). Or, to vendor the highlighting with no plugin at all, copy
+`syntax/brightscript.vim` and `ftdetect/brightscript.vim` into your config's `syntax/` and
+`ftdetect/` directories.
 
 ## Formatting
 
-The `brighterscript` language server does **not** provide LSP formatting. RokuCommunity
-ships formatting as a separate tool —
-[`brighterscript-formatter`](https://github.com/rokucommunity/brighterscript-formatter),
-the `bsfmt` CLI. Wire it into your formatter runner, e.g.
-[conform.nvim](https://github.com/stevearc/conform.nvim):
-
-```sh
-npm install -g brighterscript-formatter   # or :MasonInstall brighterscript-formatter
-```
-
-```lua
-require("conform").setup({
-  formatters_by_ft = {
-    brightscript = { "bsfmt" },
-  },
-  formatters = {
-    bsfmt = {
-      command = "bsfmt",
-      args = { "--write", "$FILENAME" },  -- bsfmt has no stdin; format the tempfile in place
-      stdin = false,                      -- conform reads the file back after --write
-    },
-  },
-})
-```
+**Not working yet — coming soon.** The `brighterscript` language server provides no LSP
+formatting, so this plugin doesn't format. RokuCommunity ships formatting as a separate
+tool — the [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter) CLI — which
+you can wire into a formatter runner (e.g. [conform.nvim](https://github.com/stevearc/conform.nvim))
+in the meantime. First-class integration is planned.
 
 ## BrightSign caveat
 
@@ -143,6 +154,26 @@ To suppress these in a BrightSign project, add a `bsconfig.json` at the project 
 ```
 
 (`1001` = "cannot find function"). Real syntax errors still surface.
+
+### Scripts outside `source/`
+
+BrightScript shares function symbols only within one global scope (`pkg:/source/**`). If your
+scripts live elsewhere (e.g. a `deploy/` or `.dev/setup/` directory), the server loads each
+file as an isolated single-file project and cross-file `gd` finds nothing. Point a
+`bsconfig.json` (next to the scripts, or at the project root) at them and remap into `source/`
+so they share one scope:
+
+```json
+{
+  "files": [
+    { "src": "**/*.brs", "dest": "source/" },
+    { "src": "**/*.bs",  "dest": "source/" }
+  ]
+}
+```
+
+Exclude any bundled/generated `.brs` that redefines the same functions (it would collide),
+e.g. add `"!pending-autorun.brs"` to `files`.
 
 ## Credits
 
