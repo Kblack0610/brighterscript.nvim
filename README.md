@@ -27,7 +27,7 @@ The same BrightSign script (`autorun.brs`) with the plugin disabled and enabled:
 
 | Plain text (no plugin) | With `brighterscript.nvim` |
 |:---:|:---:|
-| ![before: no highlighting](assets/no-highlight.png) | ![after: syntax highlighting](assets/highlight.png) |
+| ![before: no highlighting](assets/no-highlight.png) | _the screenshot at the top of this README_ |
 
 ## Install the `bsc` binary
 
