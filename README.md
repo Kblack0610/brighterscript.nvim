@@ -140,15 +140,19 @@ colors still apply). Or, to vendor the highlighting with no plugin at all, copy
 
 ## Formatting
 
-The `brighterscript` language server provides no LSP formatting, so formatting comes from
-RokuCommunity's separate [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter)
-CLI. Install it, then point a formatter runner at it:
+Formatting is **not** an LSP feature here — the `brighterscript` language server provides no
+formatting capability, so `:checkhealth vim.lsp` will never list it and `vim.lsp.buf.format()`
+errors with *"no matching language servers"*. Formatting instead comes from RokuCommunity's
+separate [`bsfmt`](https://github.com/rokucommunity/brighterscript-formatter) CLI, driven by a
+formatter runner.
+
+**1. Install `bsfmt`:**
 
 ```sh
 npm install -g brighterscript-formatter   # or :MasonInstall brighterscript-formatter
 ```
 
-With [conform.nvim](https://github.com/stevearc/conform.nvim):
+**2. Wire it into [conform.nvim](https://github.com/stevearc/conform.nvim):**
 
 ```lua
 require("conform").setup({
@@ -157,17 +161,35 @@ require("conform").setup({
   },
   formatters = {
     bsfmt = {
-      command = "bsfmt",
+      -- Resolve Mason's bin directly so an early format doesn't run before Mason
+      -- patches PATH (which would fall back to the LSP and error).
+      command = function()
+        local mason = vim.fn.stdpath("data") .. "/mason/bin/bsfmt"
+        return vim.fn.executable(mason) == 1 and mason or "bsfmt"
+      end,
       args = { "--write", "$FILENAME" },  -- bsfmt has no stdin; format the tempfile in place
       stdin = false,                      -- conform reads the file back after --write
+      -- bsfmt reads bsfmt.json from its CWD, not the file's dir — run it from the project
+      -- root so per-project style is honored (see step 3).
+      cwd = function(_, ctx)
+        return vim.fs.root(ctx.dirname, { "bsfmt.json", "bsconfig.json", "manifest" })
+      end,
     },
   },
 })
 ```
 
-`bsfmt` honors a project `bsfmt.json` for style options. If `bsfmt` isn't on your `$PATH`,
-install it via Mason (above) — `mason.nvim` prepends its `bin/` to Neovim's `PATH`, so
-conform finds it.
+**3. (Optional) Set project style with a `bsfmt.json`** at the project root. `bsfmt` defaults
+to **4-space** indentation; if your code uses something else, pin it so formatting isn't a
+whole-file reindent:
+
+```json
+{ "indentStyle": "spaces", "indentSpaceCount": 2, "keywordCase": "original" }
+```
+
+> Check formatting via `:ConformInfo` (it should show `bsfmt (available)`), **not**
+> `:checkhealth vim.lsp`. Bind a key to `require("conform").format()` rather than
+> `vim.lsp.buf.format` so it doesn't error on BrightScript.
 
 ## BrightSign caveat
 
