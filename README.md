@@ -41,6 +41,10 @@ Your own symbols resolve, including functions attached to objects (e.g. `diagnos
 finds the global `PrintDebug` sub). Engine/SDK built-ins (`CreateObject`, `print`, `wait`,
 BrightSign `ro*` objects) don't — they have no source to open, and nothing needs adding.
 
+> **Member-access gotcha:** on an `obj.method` call, `bsc` returns nothing when the cursor sits
+> on the *first* character of the member name (right after the `.`). Put the cursor one column
+> into the identifier and it resolves. Bare global names (`newDiagnostics`) don't have this.
+
 Cross-file resolution needs a project root the server can scope. A `.git`, `manifest`, or
 `bsconfig.json` is enough; if your scripts live outside `source/`, point a `bsconfig.json` at
 them (see [BrightSign caveat](#brightsign-caveat)).
